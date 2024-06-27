@@ -19,15 +19,11 @@ cd genai-tutorial
 
 fetcher is a tool for downloading content from the learning platform. You provide the content identifier you want to download, and it create a directory based on the identfier and work title, and then downloads the source text into it. You need a JWT to be able to get full content.
 
-Downland fetcher from https://drive.google.com/drive/u/0/folders/15UZ9jfqb9bepiN4uNrSIZnJsiVXjNWX0 and install it.
+You can see the additional capabilities of fetcher at https://github.com/odewahn/fetcher. The following sections walk through the basic steps.
 
 ## Installation
 
-Install fetcher from the shared drive
-
-<link>
-
-You can see the additional capabilities of fetcher at https://github.com/odewahn/fetcher. The following sections walk through the basic steps.
+Download fetcher from https://drive.google.com/drive/u/0/folders/15UZ9jfqb9bepiN4uNrSIZnJsiVXjNWX0 and install it.
 
 ## Startup
 
@@ -48,7 +44,7 @@ Run the following command
 auth
 ```
 
-Tou will be prompted to enter a JWT. If you don't have one, you cn still use fetcher, but you will only get content previews. Note that this will create a configuration file called in your home directory called `.fetcher`. You should keep the content of this file private.
+You will be prompted to enter a JWT. If you don't have one, you cn still use fetcher, but you will only get content previews. Note that this will create a configuration file called in your home directory called `.fetcher`. You should keep the content of this file private.
 
 ## Pull some content
 
@@ -127,12 +123,14 @@ The `tasks` folder contains templates for the common tasks you want an LLM to pe
 
 For example, here is the contents of the `extract-key-points.txt` task:
 
-```
+```md
 Here is a selection from a book called {{title}}:
 
-***
+---
+
 {{block}}
-***
+
+---
 
 Produce a bullet-point summary of the selection from {{title}}.
 ```
@@ -145,7 +143,7 @@ The `personas` directory contains prompts related to the tone of voice and appro
 
 Here is the sample of the `oreilly-short.txt` persona:
 
-```
+```md
 Imagine you are an expert in a technical field, tasked with explaining a complex topic to a smart novice. Whether speaking or writing, your tone should be informal, helpful, and friendly, yet rigorously thorough. Emphasize clarity and engagement, ensuring that your explanation is accessible while maintaining depth. Your goal is to create a seamless experience where concepts take center stage, guiding the audience through the information with organized structure and eliminating unnecessary details. Consider the audience's potential prior knowledge and approach the explanation as if addressing an intelligent novice.
 ```
 
@@ -153,7 +151,7 @@ You supply the persona as an option to `prompter` as described below.
 
 ## `scripts`
 
-prompter provides two ways to work with content: a REPL mode and a script mode. The section below will introduce you through the REPL mode, where you enter commands that are run one step at a time. However, much like a scripting language, you can also store commands in a file and then run them all at once. This enables you to scale the production of content once you've figured out how the original content should be formatted and chunked and decided on your prompts.
+prompter provides two ways to work with content: a REPL mode and a script mode. The section below will uses the REPL where you enter commands that are run one step at a time. However, much like a scripting language, you can also store commands in a file and then run them all at once. This enables you to scale the production of content once you've figured out how the original content should be formatted and chunked and decided on your prompts.
 
 Here is a sample script that is included in the `scripts` direcory. Note that a script is also defined using a jinja template, so you can do some basic functions like branching and logic:
 
@@ -189,7 +187,7 @@ dump --dir=. --extension=audio-narration.txt
 You would run this script with the command:
 
 ```
-run --fn=prompts/scripts/summarizer.jinja
+run --fn=../prompts/scripts/summarizer.jinja
 ```
 
 # Prompter
@@ -274,3 +272,125 @@ drwxr-xr-x  35 odewahn  staff   1120 Jun 27 10:58 source
 ```
 
 Note that you now have a file called `prompter.db`. This is a sqlite database where all content blocks and prompt responses will be stored.
+
+## Loading the content
+
+Use the following command to load all the HTML files in the source directory:
+
+```
+load --fn=source/*.html
+```
+
+Here's a sample of the output:
+
+```bash
+prompter> load --fn=source/*.html
+[17:03:22] Loading file source/*.html                                                                             main.py:417
+    Loading file source/00000-cover-cover.html                                                             main.py:432
+    Loading file source/00001-dedication01-praise-for-data-mesh.html                                       main.py:432
+    Loading file source/00002-titlepage01-data-mesh.html                                                   main.py:432
+    Loading file source/00003-copyright-page01-data-mesh.html                                              main.py:432
+    Loading file source/00008-part01-i-what-is-data-mesh.html                                              main.py:432
+    Loading file source/00009-ch01-1-data-mesh-in-a-nutshell.html                                          main.py:432
+    Loading file source/00010-ch02-2-principle-of-domain-ownership.html                                    main.py:432
+    ...
+```
+
+Run the `blocks` command to see blocks that were just created:
+
+```
+prompter> blocks
+                                                       Current Blocks
+┏━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━┓
+┃ block_id ┃ block_tag              ┃ parent_block_id ┃ group_id ┃ group_tag        ┃ block                   ┃ token_count ┃
+┡━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━┩
+│ 1        │ 00000-cover-cover.html │ 0               │ 1        │ director-himself │ <div                    │ 7           │
+│          │                        │                 │          │                  │ id="sbo-rt-content"><f… │             │
+│          │                        │                 │          │                  │ data-ty                 │             │
+│ 2        │ 00001-dedication01-pr… │ 1               │ 1        │ director-himself │ <div                    │ 593         │
+│          │                        │                 │          │                  │ id="sbo-rt-content"><s… │             │
+│          │                        │                 │          │                  │ class=                  │             │
+|                      ..........                                                                                           |
+│          │                        │                 │          │                  │ class=                  │             │
+│ 32       │ 00031-colophon02-colo… │ 31              │ 1        │ director-himself │ <div                    │ 180         │
+│          │                        │                 │          │                  │ id="sbo-rt-content"><s… │             │
+│          │                        │                 │          │                  │ data-t                  │             │
+└──────────┴────────────────────────┴─────────────────┴──────────┴──────────────────┴─────────────────────────┴─────────────┘
+
+32 blocks with 131,892 tokens.
+Current group id = (1, 'director-himself')
+
+The following fields available in --where clause:
+['block_id', 'block_tag', 'parent_block_id', 'group_id', 'group_tag', 'block', 'token_count']
+
+```
+
+You can view the contents of a block using the `dump` command with a `--where` clause to select the one you want to view:
+
+```html
+prompter> dump --where="block_id=32"
+<div id="sbo-rt-content">
+  <section
+    data-type="colophon"
+    epub:type="colophon"
+    data-pdf-bookmark="Colophon"
+  >
+    <div class="colophon" id="colophon">
+      <h1>Colophon</h1>
+
+      <p>
+        The animal on the cover of <em>Data Mesh</em> is a great snipe (<em
+          >Gallinago media</em
+        >), the fastest migratory bird known to humans. Great snipes breed in
+        northeastern Europe and migrate to sub-Saharan Africa. Researchers have
+        recorded great snipes flying 4,200 miles at up to 60 mph without
+        stopping.
+      </p>
+
+      <p>
+        A typical great snipe wingspan is 17–20 inches. They normally weigh
+        under 7 ounces. The great snipe’s plumage is mottled brown, an effective
+        camouflage for the grasslands, marshes, and meadows they inhabit, with a
+        dark stripe across their eyes. The beak is long for foraging in mud and
+        wetlands for worms and insects.
+      </p>
+
+      <p>
+        The great snipe population is Near Threatened, according to the IUCN Red
+        List. Many of the animals on O’Reilly’s covers are endangered; all of
+        them are important to the world.
+      </p>
+
+      <p>
+        The cover illustration is by Karen Montgomery, based on a
+        black-and-white engraving from <em>British Birds</em>. The cover fonts
+        are Gilroy Semibold and Guardian Sans. The text font is Adobe Minion
+        Pro; the heading font is Adobe Myriad Condensed; and the code font is
+        Dalton Maag’s Ubuntu Mono.
+      </p>
+    </div>
+  </section>
+</div>
+prompter> dump --where="block_id=31"
+<div id="sbo-rt-content">
+  <section
+    data-type="colophon"
+    epub:type="colophon"
+    class="abouttheauthor"
+    data-pdf-bookmark="About 
+the Author"
+  >
+    <div class="colophon" id="idm45614675385984">
+      <h1>About the Author</h1>
+      <p>
+        <strong>Zhamak Dehghani</strong> is a director of technology at
+        Thoughtworks, focusing on distributed systems and data architecture in
+        the enterprise. She’s a member of multiple technology advisory boards
+        including Thoughtworks. Zhamak is an advocate for the decentralization
+        of all things, including architecture, data, and ultimately power. She
+        is the founder of data mesh.
+      </p>
+    </div>
+  </section>
+</div>
+```
