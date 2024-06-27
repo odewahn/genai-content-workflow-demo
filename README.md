@@ -328,49 +328,6 @@ The following fields available in --where clause:
 You can view the contents of a block using the `dump` command with a `--where` clause to select the one you want to view:
 
 ```html
-prompter> dump --where="block_id=32"
-<div id="sbo-rt-content">
-  <section
-    data-type="colophon"
-    epub:type="colophon"
-    data-pdf-bookmark="Colophon"
-  >
-    <div class="colophon" id="colophon">
-      <h1>Colophon</h1>
-
-      <p>
-        The animal on the cover of <em>Data Mesh</em> is a great snipe (<em
-          >Gallinago media</em
-        >), the fastest migratory bird known to humans. Great snipes breed in
-        northeastern Europe and migrate to sub-Saharan Africa. Researchers have
-        recorded great snipes flying 4,200 miles at up to 60 mph without
-        stopping.
-      </p>
-
-      <p>
-        A typical great snipe wingspan is 17–20 inches. They normally weigh
-        under 7 ounces. The great snipe’s plumage is mottled brown, an effective
-        camouflage for the grasslands, marshes, and meadows they inhabit, with a
-        dark stripe across their eyes. The beak is long for foraging in mud and
-        wetlands for worms and insects.
-      </p>
-
-      <p>
-        The great snipe population is Near Threatened, according to the IUCN Red
-        List. Many of the animals on O’Reilly’s covers are endangered; all of
-        them are important to the world.
-      </p>
-
-      <p>
-        The cover illustration is by Karen Montgomery, based on a
-        black-and-white engraving from <em>British Birds</em>. The cover fonts
-        are Gilroy Semibold and Guardian Sans. The text font is Adobe Minion
-        Pro; the heading font is Adobe Myriad Condensed; and the code font is
-        Dalton Maag’s Ubuntu Mono.
-      </p>
-    </div>
-  </section>
-</div>
 prompter> dump --where="block_id=31"
 <div id="sbo-rt-content">
   <section
