@@ -351,3 +351,53 @@ the Author"
   </section>
 </div>
 ```
+
+The `--where` clause can be any sqlite where clause for the columns 'block_id', 'block_tag', 'parent_block_id', 'group_id', 'group_tag', 'block', 'token_count'. When you look at the full output of the blocks command, you'll see 32 files, many of which (like a cover or index) are not things you want to send to an LLM. You could use the `--where` clause to just get the chapters:
+
+```
+blocks --where="block_tag like '%-ch%'"
+```
+
+## Creating new groups using transformations
+
+The content downloaded from the platform contains a bunch of HTML markup that we don't want to send to the LLM. You can use the `transform` command to convert it to markdown:
+
+```
+transform --transformation=html2md
+```
+
+Rerun the blocks command just for the colophon:
+
+```
+prompter> blocks --where="block_tag like '%colo%'"
+Current Blocks
+┏━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━┓
+┃ block_id ┃ block_tag ┃ parent_block_id ┃ group_id ┃ group_tag ┃ block ┃ token_count ┃
+┡━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━┩
+│ 63 │ 00030-colophon01-abou… │ 31 │ 2 │ me-wait-kind-gas │ # About the Author │ 55 │
+│ │ │ │ │ │ **Zhamak Dehghani** │ │
+│ 64 │ 00031-colophon02-colo… │ 32 │ 2 │ me-wait-kind-gas │ # Colophon The animal │ 175 │
+│ │ │ │ │ │ on the cover of │ │
+└──────────┴────────────────────────┴─────────────────┴──────────┴──────────────────┴─────────────────────────┴─────────────┘
+
+2 blocks with 230 tokens.
+Current group id = (2, 'me-wait-kind-gas')
+
+The following fields available in --where clause:
+['block_id', 'block_tag', 'parent_block_id', 'group_id', 'group_tag', 'block', 'token_count']
+
+```
+
+Note that the colophon now has a block_id of 63
+
+```
+
+prompter> dump --where="block_id=63"
+
+# About the Author
+
+**Zhamak Dehghani** is a director of technology at Thoughtworks, focusing on distributed systems and data architecture in the
+enterprise. She’s a member of multiple technology advisory boards including Thoughtworks. Zhamak is an advocate for the
+decentralization of all things, including architecture, data, and ultimately power. She is the founder of data mesh.
+
+```
