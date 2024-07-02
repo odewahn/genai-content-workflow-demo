@@ -78,7 +78,7 @@ The `source` directory contains the text of each element in the project. Note th
 
 # Prompt Templates
 
-Once you have content downloaded, you can start defining the kinds of prompts you want to perform on it. Prompts are defined using the [jinja templating language](https://jinja.palletsprojects.com/en/3.1.x/templates/).
+Once you have content downloaded, you can start defining the kinds of prompts you want to perform with it. Prompts are defined using the [jinja templating language](https://jinja.palletsprojects.com/en/3.1.x/templates/).
 
 ## Setup
 
@@ -171,38 +171,6 @@ transfer-prompts
 dump --dir=. --extension=audio-narration.txt
 ```
 
-# Run the script to produce the summaries
-
-Open a terminal in vscode and type this:
-
-```
-prompter
-```
-
-Then change into the content directory:
-
-```
-cd --dir="~/genai-tutorial"
-```
-
-You would run this script with the command:
-
-```
-run --fn=../prompts/scripts/summarizer.jinja
-```
-
-This will churn for a few minutes, but it's only doing two chapters, so it won't take too long. (A full book might take 15-20 minutes as prompter works now, although that time could be improved by paralellizing the requests).
-
-Once it's complete, note the new markdown files in the root of the content directory. Also, note that you now what a file called `prompter.db` in your directory. This is a sqlite database that has all the blocks and content from the
-
-# Create the summary in Atlas
-
-- Create a new Atlas project at https://atlas.oreilly.com/
-- Clone it locally
-- Add the new file
-- Configure the project
-- Build
-
 # Prompter In More Depth
 
 Prompter is a tool for automating the process of applying prompt templates to blocks of content. It provides a REPL that allows you to:
@@ -268,17 +236,41 @@ total 24
 drwxr-xr-x  35 odewahn  staff  1120 Jun 27 10:58 source
 ```
 
-# Run scripts to generate sample summaries
+# Run the script to produce the summaries
 
-The following command will execute the script that creates the summaries; for brevity, it only does the first two chapters:
+Open a terminal in vscode and type this:
 
 ```
-run --fn=../prompts/scripts/summarizer-ch01-ch02.jinja --globals=metadata.yaml
+prompter
 ```
+
+Then change into the content directory:
+
+```
+cd --dir="~/genai-tutorial"
+```
+
+You would run this script with the command:
+
+```
+run --fn=../prompts/scripts/summarizer.jinja
+```
+
+This will churn for a few minutes, but it's only doing two chapters, so it won't take too long. (A full book might take 15-20 minutes as prompter works now, although that time could be improved by paralellizing the requests).
+
+Once it's complete, note the new markdown files in the root of the content directory. Also, note that you now what a file called `prompter.db` in your directory. This is a sqlite database that has all the blocks and content from the
+
+# Create the summary in Atlas
+
+- Create a new Atlas project at https://atlas.oreilly.com/
+- Clone it locally
+- Add the new file
+- Configure the project
+- Build
 
 # Self-paced prompter demo
 
-This section describes how to use prompter in more depth.
+This section describes how to use prompter in more depth, and walks through many of the the commands in the main script one by one. The goal of this section is to explain the underlying concepts required to create new scripts for different types of works. For example, if you wanted to make a glossary for a book, study questions, or other types of content.
 
 ## Loading the content
 
