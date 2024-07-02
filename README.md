@@ -171,12 +171,12 @@ transfer-prompts
 dump --dir=. --extension=audio-narration.txt
 ```
 
-# Prompter In More Depth
+# Create summaries with prompter
 
-Prompter is a tool for automating the process of applying prompt templates to blocks of content. It provides a REPL that allows you to:
+[Prompter](https://github.com/odewahn/prompter) is a tool for automating the process of applying prompt templates to blocks of content. It provides a REPL that allows you to:
 
-- Load content into a local database (SQLITE)
-- Convert the content into a format approriate for use with an LLM
+- Load content into a local SQLite database
+- Convert the content into a format approriate for use with an LLM (e.g., epub => markdown)
 - Break the content into smaller blocks that can fit within the context window of most LLMs (currently 8000 tokens). Most books or courses will be 200,000 tokens or more, so they require som degree of preprocessinf.
 - Apply prompt templates (both task and persona) and metadata the blocks and sending them to the LLM for completion
 - Store and manage the LLM output
@@ -189,20 +189,18 @@ prompt --task=../prompts/tasks/extract-key-points.txt --persona=../prompts/tasks
 
 You can find full documentation for prompter at https://github.com/odewahn/prompter.
 
-The following sections assume you have downloaded the content and prompts into a root directory.
+The following sections assume you have followed the instructions above and downloaded some content and prompts into a root directory.
 
 ## Installation
 
-You can download prompter from https://drive.google.com/drive/u/0/folders/15UZ9jfqb9bepiN4uNrSIZnJsiVXjNWX0 and install it.
-
-Open VS Code on your root directory:
+Download and install prompter from https://drive.google.com/drive/u/0/folders/15UZ9jfqb9bepiN4uNrSIZnJsiVXjNWX0 and install it. Once this is complete, open VS Code on your root directory:
 
 ```
 cd ~/genai-tutorial
 code .
 ```
 
-Your environment should look something like this:
+Within VSCode, open a terminal and type `prompter`. Your environment should look something like this:
 
 ![prompter in vscode](prompter-in-vscode.png)
 
@@ -238,19 +236,7 @@ drwxr-xr-x  35 odewahn  staff  1120 Jun 27 10:58 source
 
 # Run the script to produce the summaries
 
-Open a terminal in vscode and type this:
-
-```
-prompter
-```
-
-Then change into the content directory:
-
-```
-cd --dir="~/genai-tutorial"
-```
-
-You would run this script with the command:
+Run the script to create the summaries using this command:
 
 ```
 run --fn=../prompts/scripts/summarizer.jinja
@@ -271,6 +257,14 @@ Once it's complete, note the new markdown files in the root of the content direc
 # Self-paced prompter demo
 
 This section describes how to use prompter in more depth, and walks through many of the the commands in the main script one by one. The goal of this section is to explain the underlying concepts required to create new scripts for different types of works. For example, if you wanted to make a glossary for a book, study questions, or other types of content.
+
+## Create a new database
+
+Running this command will create a new database and back up the existing copy:
+
+```
+init
+```
 
 ## Loading the content
 
