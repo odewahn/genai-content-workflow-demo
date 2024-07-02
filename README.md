@@ -2,8 +2,7 @@
 
 Redo scripts file to assume relative directories
 Recompile fetcher to use config file `~/.fetcher`
-
-# Initial Setup
+Add the persona prompt into the hash computation in prompter
 
 # Set up a working directory
 
@@ -15,15 +14,13 @@ mkdir genai-tutorial
 cd genai-tutorial
 ```
 
-# Install `fetcher` and download some content
+# Set up and run `fetcher` to download some content
 
 fetcher is a tool for downloading content from the learning platform. You provide the content identifier you want to download, and it create a directory based on the identfier and work title, and then downloads the source text into it. You need a JWT to be able to get full content.
 
+Download and install fetcher from https://drive.google.com/drive/u/0/folders/15UZ9jfqb9bepiN4uNrSIZnJsiVXjNWX0 and install it.
+
 You can see the additional capabilities of fetcher at https://github.com/odewahn/fetcher. The following sections walk through the basic steps.
-
-## Installation
-
-Download fetcher from https://drive.google.com/drive/u/0/folders/15UZ9jfqb9bepiN4uNrSIZnJsiVXjNWX0 and install it.
 
 ## Startup
 
@@ -46,7 +43,7 @@ auth
 
 You will be prompted to enter a JWT. If you don't have one, you cn still use fetcher, but you will only get content previews. Note that this will create a configuration file called in your home directory called `.fetcher`. You should keep the content of this file private.
 
-## Pull some content
+## Fetch some content
 
 You pull content using the `init` command:
 
@@ -165,23 +162,37 @@ init
    # Load a book
    load --fn=source/*.html
    transform --transformation="html2md,token-split"
-   filter --where="block_tag like '%-ch%'"
+   filter --where="block_tag like '%-ch01%' or block_tag like '%-ch02%'"
 {% else %}
    # Loading {{format}}
    load --fn=source/*.md
    transform --transformation="token-split"
 {% endif %}
 # Extract the key points
-prompt --task=~/Desktop/prompts/tasks/extract-key-points.txt --persona=~/Desktop/prompts/personas/oreilly-short.txt --global=metadata.yaml
+prompt --task=../prompts/tasks/extract-key-points.txt --persona=../prompts/personas/oreilly-short.txt --global=metadata.yaml
 squash --delimiter="\n************** SECTION BREAK *****************\n"
-prompt --task=~/Desktop/prompts/tasks/cleanup-merged-blocks.txt --global=metadata.yaml
+prompt --task=../prompts/tasks/cleanup-merged-blocks.txt --global=metadata.yaml
 transfer-prompts --group_tag=cleaned-summaries
-prompt --task=~/Desktop/prompts/tasks/convert-summary-to-narrative.txt --persona=~/Desktop/prompts/personas/oreilly-short.txt --global=metadata.yaml
+prompt --task=../prompts/tasks/convert-summary-to-narrative.txt --persona=../prompts/personas/oreilly-short.txt --global=metadata.yaml
 transfer-prompts --group_tag=narrative-summary
 dump --dir=.
-prompt --task=~/Desktop/prompts/tasks/create-audiobook-narration.txt --persona=~/Desktop/prompts/personas/oreilly-short.txt --global=metadata.yaml
+prompt --task=../prompts/tasks/create-audiobook-narration.txt --persona=../prompts/personas/oreilly-short.txt --global=metadata.yaml
 transfer-prompts
 dump --dir=. --extension=audio-narration.txt
+```
+
+# Run the script to produce the summaries
+
+Open a terminal in vscode and type this:
+
+```
+prompter
+```
+
+Then change into the content directory:
+
+```
+cd --dir="~/genai-tutorial"
 ```
 
 You would run this script with the command:
@@ -190,7 +201,19 @@ You would run this script with the command:
 run --fn=../prompts/scripts/summarizer.jinja
 ```
 
-# Prompter
+This will churn for a few minutes, but it's only doing two chapters, so it won't take too long. (A full book might take 15-20 minutes as prompter works now, although that time could be improved by paralellizing the requests).
+
+Once it's complete, note the new markdown files in the root of the content directory.
+
+# Create the summary in Atlas
+
+- Create a new Atlas project at https://atlas.oreilly.com/
+- Clone it locally
+- Add the new file
+- Configure the project
+- Build
+
+# Prompter In More Depth
 
 Prompter is a tool for automating the process of applying prompt templates to blocks of content. It provides a REPL that allows you to:
 
@@ -217,10 +240,8 @@ You can download prompter from https://drive.google.com/drive/u/0/folders/15UZ9j
 Open VS Code on your root directory:
 
 ```
-
 cd ~/genai-tutorial
 code .
-
 ```
 
 Your environment should look something like this:
@@ -257,21 +278,17 @@ total 24
 drwxr-xr-x  35 odewahn  staff  1120 Jun 27 10:58 source
 ```
 
-Finally, run the `init` command to create the prompter database for this content. In general, the tool assumes one database per content project.
+# Run scripts to generate sample summaries
+
+The following command will execute the script that creates the summaries; for brevity, it only does the first two chapters:
 
 ```
-prompter> init
-[16:53:03] Backing up database to prompter.db.20240627-165303.bak                                                 main.py:401
-prompter> ls
-total 88
--rw-------   1 odewahn  staff    121 Jun 27 10:56 README.md
--rw-------   1 odewahn  staff    285 Jun 27 10:56 init.promptlab
--rw-r--r--   1 odewahn  staff   1500 Jun 27 10:56 metadata.yaml
--rw-r--r--   1 odewahn  staff  32768 Jun 27 16:53 prompter.db
-drwxr-xr-x  35 odewahn  staff   1120 Jun 27 10:58 source
+run --fn=../prompts/scripts/summarizer-ch01-ch02.jinja --globals=metadata.yaml
 ```
 
-Note that you now have a file called `prompter.db`. This is a sqlite database where all content blocks and prompt responses will be stored.
+# Self-paced prompter demo
+
+This section describes how to use prompter in more depth.
 
 ## Loading the content
 
@@ -325,10 +342,12 @@ The following fields available in --where clause:
 
 ```
 
+Note that each block has a unique field called `block_tag` that is based off the original filename. You can use this name to refer to specific block or group of blocks.
+
 You can view the contents of a block using the `dump` command with a `--where` clause to select the one you want to view:
 
 ```html
-prompter> dump --where="block_id=31"
+prompter> dump --where="block_id=32"
 <div id="sbo-rt-content">
   <section
     data-type="colophon"
@@ -388,11 +407,11 @@ The following fields available in --where clause:
 
 ```
 
-Note that the colophon now has a block_id of 63
+Here's the result of the conversion:
 
 ```
 
-prompter> dump --where="block_id=63"
+prompter> dump --where="block_tag like '%colophon01%'"
 
 # About the Author
 
@@ -400,4 +419,35 @@ prompter> dump --where="block_id=63"
 enterprise. She’s a member of multiple technology advisory boards including Thoughtworks. Zhamak is an advocate for the
 decentralization of all things, including architecture, data, and ultimately power. She is the founder of data mesh.
 
+```
+
+A few things to note:
+
+- the colophon now has a block_id of 63
+- the current group id (shown at the end of the output of the blocks command) is now 2
+- the group_tag has changed from `director-himself` to `me-wait-kind-gas`
+- the HTML markup has been converted to markdown, which is a cleaner format to send to an LLM
+
+The reason the group_id and block_id changed is that transformation in `prompter` do not update data -- it only adds new results. Each transformation creates a new group containing the corresponding blocks. The `groups` command will shows the groups different groups:
+
+```
+prompter> groups
+                        Groups
+┏━━━━┳━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┓
+┃ id ┃ group_tag        ┃ block_count ┃ prompt_count ┃
+┡━━━━╇━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━╇━━━━━━━━━━━━━━┩
+│ 1  │ director-himself │ 32          │ 0            │
+│ 2  │ me-wait-kind-gas │ 32          │ 0            │
+└────┴──────────────────┴─────────────┴──────────────┘
+
+2 group(s) in total
+Current group_id: (2, 'me-wait-kind-gas')
+```
+
+You can provide a `--group_tag` when doing transformations to name them yourself; otherwise, `prompter` will generate a random name for you.
+
+As a last example of transformation, this command will split the current blocks into new blocks of 2000 characters with a group tag of `chunked`:
+
+```
+transform --transformation=token-split --group_tag=chunked
 ```
