@@ -1,12 +1,6 @@
-# TO DO
-
-Redo scripts file to assume relative directories
-Recompile fetcher to use config file `~/.fetcher`
-Add the persona prompt into the hash computation in prompter
-
 # Set up a working directory
 
-For the purposes of this walkthrough, tlet's assume all files are in a directory called `genai-tutorial`:
+For the purposes of this walkthrough, let's assume all files are in a directory called `genai-tutorial`:
 
 ```
 cd ~
@@ -14,13 +8,11 @@ mkdir genai-tutorial
 cd genai-tutorial
 ```
 
-# Set up and run `fetcher` to download some content
+# Set up `fetcher` and download some content
 
-fetcher is a tool for downloading content from the learning platform. You provide the content identifier you want to download, and it create a directory based on the identfier and work title, and then downloads the source text into it. You need a JWT to be able to get full content.
+[Fetcher](https://github.com/odewahn/fetcher) is a tool for downloading content from the O'Reilly learning platform. You provide the content identifier you want to download. Fetcher creates a directory based on the identfier and work title, and then downloads the source text into it. You need a JWT to be able to get full content. You can see the additional capabilities of fetcher at https://github.com/odewahn/fetcher.
 
-Download and install fetcher from https://drive.google.com/drive/u/0/folders/15UZ9jfqb9bepiN4uNrSIZnJsiVXjNWX0 and install it.
-
-You can see the additional capabilities of fetcher at https://github.com/odewahn/fetcher. The following sections walk through the basic steps.
+To install it on OSX, doubleclick the fetcher package file from https://drive.google.com/drive/u/0/folders/15UZ9jfqb9bepiN4uNrSIZnJsiVXjNWX0.
 
 ## Startup
 
@@ -35,15 +27,15 @@ It will take a minute for fetcher to start...
 
 ## Set up authentication
 
-Run the following command
+Run the following command once the REPL starts:
 
 ```
 auth
 ```
 
-You will be prompted to enter a JWT. If you don't have one, you cn still use fetcher, but you will only get content previews. Note that this will create a configuration file called in your home directory called `.fetcher`. You should keep the content of this file private.
+You will be prompted to enter a JWT. If you don't have one, you can still use fetcher, but you will only get content previews. Note that this will create a configuration file called in your home directory called `.fetcher`. You should keep the content of this file private.
 
-## Fetch some content
+## Download content
 
 You pull content using the `init` command:
 
@@ -86,13 +78,11 @@ The `source` directory contains the text of each element in the project. Note th
 
 # Prompt Templates
 
-Once you have content downloaded, you can start defining the kinds of prompts you want to perform on it.
-
-Prompts are defined using the [jinja templating language]().
+Once you have content downloaded, you can start defining the kinds of prompts you want to perform on it. Prompts are defined using the [jinja templating language](https://jinja.palletsprojects.com/en/3.1.x/templates/).
 
 ## Setup
 
-You'll need a directory to store the prompt templates and automation scripts. Download this into the root your working direcory:
+You'll need a directory to store the prompt templates and automation scripts. Download this into the root your working directory:
 
 ```
 cd ~/genai-tutorial
@@ -152,7 +142,7 @@ prompter provides two ways to work with content: a REPL mode and a script mode. 
 
 Here is a sample script that is included in the `scripts` direcory. Note that a script is also defined using a jinja template, so you can do some basic functions like branching and logic:
 
-```
+```bash
 # This script assumes you used fetcher to download the content
 # Before running this script, be sure to use the command
 #    cd -dir=<content directory>
@@ -203,7 +193,7 @@ run --fn=../prompts/scripts/summarizer.jinja
 
 This will churn for a few minutes, but it's only doing two chapters, so it won't take too long. (A full book might take 15-20 minutes as prompter works now, although that time could be improved by paralellizing the requests).
 
-Once it's complete, note the new markdown files in the root of the content directory.
+Once it's complete, note the new markdown files in the root of the content directory. Also, note that you now what a file called `prompter.db` in your directory. This is a sqlite database that has all the blocks and content from the
 
 # Create the summary in Atlas
 
