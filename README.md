@@ -433,7 +433,8 @@ drwxr-xr-x  35 odewahn  staff  1120 Jun 27 10:58 source
 Run the script to create the summaries using this command:
 
 ```
-run --fn=../prompts/scripts/summarizer.jinja
+run --fn=../prompts/scripts/summarizer-ch01-ch02.jinja --global=metadat
+a.yaml
 ```
 
 This will churn for a few minutes, but it's only doing two chapters, so it won't take too long.
