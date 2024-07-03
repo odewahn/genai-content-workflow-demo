@@ -16,139 +16,7 @@ mkdir genai-tutorial
 cd genai-tutorial
 ```
 
-# Set up `fetcher` and download some content
-
-[Fetcher](https://github.com/odewahn/fetcher) is a tool for downloading content from the O'Reilly learning platform. You provide the content identifier you want to download. Fetcher creates a directory based on the identfier and work title, and then downloads the source text into it. You need a JWT to be able to get full content. You can see the additional capabilities of fetcher at https://github.com/odewahn/fetcher.
-
-To install it on OSX, doubleclick the fetcher package file from https://drive.google.com/drive/u/0/folders/15UZ9jfqb9bepiN4uNrSIZnJsiVXjNWX0.
-
-## Startup
-
-Open a terminal
-
-```
-cd ~/genai-tutorial
-fetcher
-```
-
-It will take a minute for fetcher to start...
-
-## Set up authentication
-
-Run the following command once the REPL starts:
-
-```
-auth
-```
-
-You will be prompted to enter a JWT. If you don't have one, you can still use fetcher, but you will only get content previews. Note that this will create a configuration file called in your home directory called `.fetcher`. You should keep the content of this file private.
-
-## Download content
-
-You pull content using the `init` command:
-
-```
-init --identifier=9781492092384
-```
-
-Fetcher will create a direcory based on the identifier and title slug, and start downloading the content into it:
-
-```
-- 9781492092384-data-mesh
--- README.md
--- metadata.yml
--- source
-   -- ...
-   -- 00009-ch01-1-data-mesh-in-a-nutshell.html
-   -- 00010-ch02-2-principle-of-domain-ownership.html
-   -- 00011-ch03-3-principle-of-data-as-a-product.html
-   -- 00012-ch04-4-principle-of-the-self-serve-data-platform.html
-   -- ...
-```
-
-The `metadata.yml` file contains the a subset of the product metadata:
-
-```
-authors: Dehghani, Zhamak
-content_format: book
-description: <marketing description>
-duration_seconds: null
-format: book
-identifier: '9781492092384'
-issued: '2022-03-09'
-publishers: O'Reilly Media, Inc.
-title: Data Mesh
-topics: Data Mesh
-virtual_pages: 569
-```
-
-The `source` directory contains the text of each element in the project. Note that the file type depends on the type of content: books will have `html` data, while courses will be in `markdown` format.
-
-# Prompt Templates
-
-Once you have content downloaded, you can start defining the kinds of prompts you want to perform with it. Prompts are defined using the [jinja templating language](https://jinja.palletsprojects.com/en/3.1.x/templates/).
-
-## Setup
-
-You'll need a directory to store the prompt templates and automation scripts. Download this into the root your working directory:
-
-```
-cd ~/genai-tutorial
-git clone https://github.com/odewahn/prompts
-```
-
-You will then have a directory that looks like this:
-
-```
-- prompts
-  - tasks
-    - extract-key-points.txt
-    - ...
-  - personas
-    - oreilly-short.txt
-  - scripts
-    - summarizer.jinja
-```
-
-Here is a description of the contents for each folder:
-
-## `tasks`
-
-The `tasks` folder contains templates for the common tasks you want an LLM to perform. For example, things like extracting key points, writing a narrative summary, or creating a narrative summary.
-
-For example, here is the contents of the `extract-key-points.txt` task:
-
-```md
-Here is a selection from a book called {{title}}:
-
----
-
-{{block}}
-
----
-
-Produce a bullet-point summary of the selection from {{title}}.
-```
-
-The task, as well as any metadata such as `{{title}}` and `{{block}}` elements is supplied to `prompter` as described below. The `{{block}}` element is a special, reserved word and is used to supply a block of text extracted from the content you downloaded from `fetcher`. In general, a chapter (much less an entire book) is far too long to fit within the context window of most models. `prompter` is a tool for helping manage this problem by giving you many ways to break contento into smaller blocks and do prompting with it.
-
-## `personas`
-
-The `personas` directory contains prompts related to the tone of voice and approach the LLM should use when it's performing the task. (This is sometimes also called the system prompt.) For example, you might want than LLM to sound like a helpful tutor, or perhaps a pirate.
-
-Here is the sample of the `oreilly-short.txt` persona:
-
-```md
-Imagine you are an expert in a technical field, tasked with explaining a complex topic to a smart novice. Whether speaking or writing, your tone should be informal, helpful, and friendly, yet rigorously thorough. Emphasize clarity and engagement, ensuring that your explanation is accessible while maintaining depth. Your goal is to create a seamless experience where concepts take center stage, guiding the audience through the information with organized structure and eliminating unnecessary details. Consider the audience's potential prior knowledge and approach the explanation as if addressing an intelligent novice.
-```
-
-You supply the persona as an option to `prompter` as described below.
-
-## `scripts`
-
-prompter provides two ways to work with content: a REPL mode and a script mode. The section below will uses the REPL where you enter commands that are run one step at a time. However, much like a scripting language, you can also store commands in a file and then run them all at once. This enables you to scale the production of content once you've figured out how the original content should be formatted and chunked and decided on your prompts.
-
-# Create summaries with prompter
+# Quickstary: Making summaries with prompter
 
 [Prompter](https://github.com/odewahn/prompter) is a tool for automating the process of applying prompt templates to blocks of content. It provides a REPL that allows you to:
 
@@ -393,6 +261,138 @@ Rerunning the script (you should be able to just up-arrow) gives you this result
 ```
 Arrr, cats be excellent house pets, me hearties, for they be good companions, civilized members of the household, and easy to care for, makin' 'em a popular choice fer many a landlubber.
 ```
+
+# Using `fetcher` to download content from the platform
+
+[Fetcher](https://github.com/odewahn/fetcher) is a tool for downloading content from the O'Reilly learning platform. You provide the content identifier you want to download. Fetcher creates a directory based on the identfier and work title, and then downloads the source text into it. You need a JWT to be able to get full content. You can see the additional capabilities of fetcher at https://github.com/odewahn/fetcher.
+
+To install it on OSX, doubleclick the fetcher package file from https://drive.google.com/drive/u/0/folders/15UZ9jfqb9bepiN4uNrSIZnJsiVXjNWX0.
+
+## Startup
+
+Open a terminal
+
+```
+cd ~/genai-tutorial
+fetcher
+```
+
+It will take a minute for fetcher to start...
+
+## Set up authentication
+
+Run the following command once the REPL starts:
+
+```
+auth
+```
+
+You will be prompted to enter a JWT. If you don't have one, you can still use fetcher, but you will only get content previews. Note that this will create a configuration file called in your home directory called `.fetcher`. You should keep the content of this file private.
+
+## Download content
+
+You pull content using the `init` command:
+
+```
+init --identifier=9781492092384
+```
+
+Fetcher will create a direcory based on the identifier and title slug, and start downloading the content into it:
+
+```
+- 9781492092384-data-mesh
+-- README.md
+-- metadata.yml
+-- source
+   -- ...
+   -- 00009-ch01-1-data-mesh-in-a-nutshell.html
+   -- 00010-ch02-2-principle-of-domain-ownership.html
+   -- 00011-ch03-3-principle-of-data-as-a-product.html
+   -- 00012-ch04-4-principle-of-the-self-serve-data-platform.html
+   -- ...
+```
+
+The `metadata.yml` file contains the a subset of the product metadata:
+
+```
+authors: Dehghani, Zhamak
+content_format: book
+description: <marketing description>
+duration_seconds: null
+format: book
+identifier: '9781492092384'
+issued: '2022-03-09'
+publishers: O'Reilly Media, Inc.
+title: Data Mesh
+topics: Data Mesh
+virtual_pages: 569
+```
+
+The `source` directory contains the text of each element in the project. Note that the file type depends on the type of content: books will have `html` data, while courses will be in `markdown` format.
+
+# Prompt Templates
+
+Once you have content downloaded, you can start defining the kinds of prompts you want to perform with it. Prompts are defined using the [jinja templating language](https://jinja.palletsprojects.com/en/3.1.x/templates/).
+
+## Setup
+
+You'll need a directory to store the prompt templates and automation scripts. Download this into the root your working directory:
+
+```
+cd ~/genai-tutorial
+git clone https://github.com/odewahn/prompts
+```
+
+You will then have a directory that looks like this:
+
+```
+- prompts
+  - tasks
+    - extract-key-points.txt
+    - ...
+  - personas
+    - oreilly-short.txt
+  - scripts
+    - summarizer.jinja
+```
+
+Here is a description of the contents for each folder:
+
+## `tasks`
+
+The `tasks` folder contains templates for the common tasks you want an LLM to perform. For example, things like extracting key points, writing a narrative summary, or creating a narrative summary.
+
+For example, here is the contents of the `extract-key-points.txt` task:
+
+```md
+Here is a selection from a book called {{title}}:
+
+---
+
+{{block}}
+
+---
+
+Produce a bullet-point summary of the selection from {{title}}.
+```
+
+The task, as well as any metadata such as `{{title}}` and `{{block}}` elements is supplied to `prompter` as described below. The `{{block}}` element is a special, reserved word and is used to supply a block of text extracted from the content you downloaded from `fetcher`. In general, a chapter (much less an entire book) is far too long to fit within the context window of most models. `prompter` is a tool for helping manage this problem by giving you many ways to break contento into smaller blocks and do prompting with it.
+
+## `personas`
+
+The `personas` directory contains prompts related to the tone of voice and approach the LLM should use when it's performing the task. (This is sometimes also called the system prompt.) For example, you might want than LLM to sound like a helpful tutor, or perhaps a pirate.
+
+Here is the sample of the `oreilly-short.txt` persona:
+
+```md
+Imagine you are an expert in a technical field, tasked with explaining a complex topic to a smart novice. Whether speaking or writing, your tone should be informal, helpful, and friendly, yet rigorously thorough. Emphasize clarity and engagement, ensuring that your explanation is accessible while maintaining depth. Your goal is to create a seamless experience where concepts take center stage, guiding the audience through the information with organized structure and eliminating unnecessary details. Consider the audience's potential prior knowledge and approach the explanation as if addressing an intelligent novice.
+```
+
+You supply the persona as an option to `prompter` as described below.
+
+## `scripts`
+
+prompter provides two ways to work with content: a REPL mode and a script mode. The section below will uses the REPL where you enter commands that are run one step at a time. However, much like a scripting language, you can also store commands in a file and then run them all at once. This enables you to scale the production of content once you've figured out how the original content should be formatted and chunked and decided on your prompts.
 
 # Using Prompter with Fetcher content
 
