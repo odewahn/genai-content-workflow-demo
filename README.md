@@ -140,37 +140,6 @@ You supply the persona as an option to `prompter` as described below.
 
 prompter provides two ways to work with content: a REPL mode and a script mode. The section below will uses the REPL where you enter commands that are run one step at a time. However, much like a scripting language, you can also store commands in a file and then run them all at once. This enables you to scale the production of content once you've figured out how the original content should be formatted and chunked and decided on your prompts.
 
-Here is a sample script that is included in the `scripts` direcory. Note that a script is also defined using a jinja template, so you can do some basic functions like branching and logic:
-
-```bash
-# This script assumes you used fetcher to download the content
-# Before running this script, be sure to use the command
-#    cd -dir=<content directory>
-#
-init
-{% if format == "book" %}
-   # Load a book
-   load --fn=source/*.html
-   transform --transformation="html2md,token-split"
-   filter --where="block_tag like '%-ch01%' or block_tag like '%-ch02%'"
-{% else %}
-   # Loading {{format}}
-   load --fn=source/*.md
-   transform --transformation="token-split"
-{% endif %}
-# Extract the key points
-prompt --task=../prompts/tasks/extract-key-points.txt --persona=../prompts/personas/oreilly-short.txt --global=metadata.yaml
-squash --delimiter="\n************** SECTION BREAK *****************\n"
-prompt --task=../prompts/tasks/cleanup-merged-blocks.txt --global=metadata.yaml
-transfer-prompts --group_tag=cleaned-summaries
-prompt --task=../prompts/tasks/convert-summary-to-narrative.txt --persona=../prompts/personas/oreilly-short.txt --global=metadata.yaml
-transfer-prompts --group_tag=narrative-summary
-dump --dir=.
-prompt --task=../prompts/tasks/create-audiobook-narration.txt --persona=../prompts/personas/oreilly-short.txt --global=metadata.yaml
-transfer-prompts
-dump --dir=. --extension=audio-narration.txt
-```
-
 # Create summaries with prompter
 
 [Prompter](https://github.com/odewahn/prompter) is a tool for automating the process of applying prompt templates to blocks of content. It provides a REPL that allows you to:
@@ -203,6 +172,177 @@ code .
 Within VSCode, open a terminal and type `prompter`. Your environment should look something like this:
 
 ![prompter in vscode](prompter-in-vscode.png)
+
+## Some fundamental concepts
+
+Let's start with a simple example -- summarizing an essay. The main things to understand here are:
+
+- blocks -- chunks of text
+- groups -- groups of related blocks that are created by actions like loading, transformaing, or squashing
+- prompts -- the task and persona that are applied to a block and sent to an LLM for completion
+
+```
+cd ~/genai-tutorial
+git clone git@github.com:odewahn/cat-essay.git
+```
+
+Start prompter:
+
+```
+prompter
+```
+
+First, create a database:
+
+```
+init
+```
+
+Next, load in the essay:
+
+```
+load --fn=cat-essay.txt
+```
+
+This will create a new group (a set of content named with a `group_tag`) with 1 block (a chunk of text). Run the `blocks` command to see the blocks:
+
+```
+blocks
+                                                        Current Blocks
+┏━━━━━━━━━━┳━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━┓
+┃ block_id ┃ block_tag     ┃ parent_block_id ┃ group_id ┃ group_tag           ┃ block                          ┃ token_count ┃
+┡━━━━━━━━━━╇━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━┩
+│ 1        │ cat-essay.txt │ 0               │ 1        │ table-read-state-of │ Man's best friend has          │ 354         │
+│          │               │                 │          │                     │ historically been              │             │
+└──────────┴───────────────┴─────────────────┴──────────┴─────────────────────┴────────────────────────────────┴─────────────┘
+
+1 blocks with 354 tokens.
+Current group id = (1, 'table-read-state-of')
+```
+
+You can see the content with the `dump` command:
+
+```
+dump
+```
+
+Now let's split this into separate paragraphs, which is done with the `transform` command:
+
+```
+transform --transformation=new-line-split
+```
+
+Now rerun the `blocks` command, ordering it by block_id:
+
+```
+blocks --order=block_id
+                                                        Current Blocks
+┏━━━━━━━━━━┳━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━┓
+┃ block_id ┃ block_tag     ┃ parent_block_id ┃ group_id ┃ group_tag           ┃ block                          ┃ token_count ┃
+┡━━━━━━━━━━╇━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━┩
+│ 2        │ cat-essay.txt │ 1               │ 2        │ turn-reduce-medical │ Man's best friend has          │ 65          │
+│          │               │                 │          │                     │ historically been              │             │
+│ 3        │ cat-essay.txt │ 1               │ 2        │ turn-reduce-medical │ Cats are good companions. They │ 72          │
+│          │               │                 │          │                     │ will snug                      │             │
+│ 4        │ cat-essay.txt │ 1               │ 2        │ turn-reduce-medical │ Cats are also civilized        │ 86          │
+│          │               │                 │          │                     │ housemates. Unli               │             │
+│ 5        │ cat-essay.txt │ 1               │ 2        │ turn-reduce-medical │ Cats are easy to care for.     │ 76          │
+│          │               │                 │          │                     │ They don’t ha                  │             │
+│ 6        │ cat-essay.txt │ 1               │ 2        │ turn-reduce-medical │ Cats are low maintenance,      │ 59          │
+│          │               │                 │          │                     │ civilized comp                 │             │
+└──────────┴───────────────┴─────────────────┴──────────┴─────────────────────┴────────────────────────────────┴─────────────┘
+
+5 blocks with 358 tokens.
+Current group id = (2, 'turn-reduce-medical')
+```
+
+Notice that we now have a new group with five blocks that are each a paragraph from the original essay. You can see the content of a block with the `dump` command:
+
+```
+dump --where="block_id=3"
+
+Cats are good companions. They will snuggle up and ask to be petted or scratched under the chin, and who can resist a purring cat? If they're not feeling affectionate, cats are generally quite playful; they love to chase balls and feathers — or just about anything dangling from a string. And when they’re tired from chasing laser pointers, cats will curl up in your lap to nap. Cats are loyal housemates.
+```
+
+Now we're ready to try to do some prompting:
+
+```
+prompt --task=summarize.jinja
+[20:13:48] (1/5) Prompting block 4 cat-essay.txt Cats are also civilized    main.py:536
+           housemates. Unli
+[20:13:50] Elapsed time 2.2171173095703125  ->  Cats are polite and         main.py:554
+           civilized housemates
+           (2/5) Prompting block 5 cat-essay.txt Cats are easy to care for. main.py:536
+           They don’t ha
+[20:13:51] Elapsed time 0.7761921882629395  ->  Cats are low-maintenance    main.py:554
+           pets that exerc
+           (3/5) Prompting block 3 cat-essay.txt Cats are good companions.  main.py:536
+           They will snug
+           Elapsed time 0.6047070026397705  ->  Cats make excellent         main.py:554
+           companions due to th
+           (4/5) Prompting block 6 cat-essay.txt Cats are low maintenance,  main.py:536
+           civilized comp
+[20:13:52] Elapsed time 0.981417179107666  ->  Cats are ideal house pets    main.py:554
+           due to their l
+           (5/5) Prompting block 2 cat-essay.txt Man's best friend has      main.py:536
+           historically been
+[20:13:53] Elapsed time 0.642535924911499  ->  While dogs are traditionally main.py:554
+           seen as man
+                                                                            main.py:557
+           Prompt response saved with id 1 and prompt_tag
+           that-probably-trade
+```
+
+Run the `prompts` command to see the prompts that were created:
+
+```
+prompts
+```
+
+To see the actual reults from all the prompts, use the `dump` command:
+
+```
+dump --source=prompts --order=prompt_id
+```
+
+Now take all the prompts and squash them back into a single block. This time we'll supply our own group name so that we can refer to it later if we want:
+
+```
+squash --group_tag=summary
+```
+
+Then run the `blocks` command to see the new group:
+
+```
+blocks
+                                                     Current Blocks
+┏━━━━━━━━━━┳━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━┓
+┃ block_id ┃ block_tag     ┃ parent_block_id ┃ group_id ┃ group_tag ┃ block                               ┃ token_count ┃
+┡━━━━━━━━━━╇━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━┩
+│ 7        │ cat-essay.txt │ 1               │ 3        │ summary   │ Cats are polite and civilized       │ 110         │
+│          │               │                 │          │           │ housemates                          │             │
+└──────────┴───────────────┴─────────────────┴──────────┴───────────┴─────────────────────────────────────┴─────────────┘
+
+1 blocks with 110 tokens.
+Current group id = (3, 'summary')
+```
+
+Since we now have a new block, we can consolidate things even further by asking the LLM to resummarize the squashed summaries:
+
+```
+prompt --task=summarize.jinja
+[20:25:02] (1/1) Prompting block 7 cat-essay.txt Cats are polite and civilized housemates                     main.py:536
+[20:25:03] Elapsed time 1.1071386337280273  ->  Cats are ideal house pets due to their l                      main.py:554
+                                                                                                              main.py:557
+           Prompt response saved with id 2 and prompt_tag fly-art-tell-threat
+```
+
+And, finally, we can see the results of the new prompt with the `dump` command:
+
+```
+dump --source=prompts
+Cats are ideal house pets due to their low maintenance, civilized behavior, suitability for small living spaces, and affectionate companionship.
+```
 
 ## Navigating to the content repo
 
