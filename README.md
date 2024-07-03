@@ -346,12 +346,48 @@ prompt --task=summarize.jinja
            Prompt response saved with id 2 and prompt_tag fly-art-tell-threat
 ```
 
+This time, we only have one prompt, so we can just transfer it directly back as single block:
+
+```
+transfer-prompts --to=blocks --group_tag=final
+```
+
 And, finally, we can see the results of the new prompt with the `dump` command:
 
 ```
-dump --source=prompts
+dump
+
 Cats are ideal house pets due to their low maintenance, civilized behavior, suitability for small living spaces, and affectionate companionship.
 ```
+
+Great! Now we have the "recipe" for creating a summary for the content. Now we can put it all into a single script that can be run in one step. check out the file `summarize.prompter`, which has all the commands in one place:
+
+```bash
+init
+load --fn=cat-essay.txt
+transform --transformation=new-line-split
+prompt --task=summarize.jinja
+squash --group_tag=summarized-chunks --order=group_id
+prompt --task=summarize.jinja
+transfer-prompts --to=blocks --group_tag=final
+dump
+```
+
+To run this, we can use the `run` command:
+
+```
+run --fn=summarize.prompter
+```
+
+Finally, try adding this to the final prompt to see a different persona and run the script again:
+
+```
+ --persona=pirate.txt
+```
+
+# Using Prompter with Fetcher content
+
+This section describes how to use prompter with content downloaded from the O'Reilly learning platform using fetcher. The goal is to show how to use prompter to create summaries of technical content.
 
 ## Navigating to the content repo
 
