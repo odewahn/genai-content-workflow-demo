@@ -1,3 +1,11 @@
+This is a walkthrough of how to use the GenAI toolchain to create summaries of technical content. The toolchain consists of three main components:
+
+- `fetcher` -- a tool for downloading content from the O'Reilly learning platform
+- `prompter` -- a tool for applying prompts to content and sending it to an LLM for completion
+- `atlas` -- a tool for creating and managing content in the O'Reilly Atlas platform
+
+Atlas won't be covered in much detail, but you can find plenty of documentation at [Atlas](https://atlas.oreilly.com/).
+
 # Set up a working directory
 
 For the purposes of this walkthrough, let's assume all files are in a directory called `genai-tutorial`:
@@ -175,11 +183,12 @@ Within VSCode, open a terminal and type `prompter`. Your environment should look
 
 ## Some fundamental concepts
 
-Let's start with a simple example -- summarizing an essay. The main things to understand here are:
+Let's start with a simple example -- summarizing an essay. The main things to understand about using prompter are:
 
-- blocks -- chunks of text
-- groups -- groups of related blocks that are created by actions like loading, transformaing, or squashing
-- prompts -- the task and persona that are applied to a block and sent to an LLM for completion
+- block -- chunks of text of any size. The goal of prompter is to get all blocks in a work to be smaller than the context window for LLM models
+- group -- sets of blocks that are created during actions like loading, transforming, or squashing other blocks. You can give a group a meaningfule name by supplying a `--group_tag` in the command that is creting it. Otherwise prompter will generate a random name for you.
+- current group -- the set of blocks that are the result of the most recent operation
+- prompt -- a templated task (and persona) that are applied to a block and sent to an LLM for completion. This output can then be used to create new blocks, which enables you to chaing operations together to create more complex operations.
 
 ```
 cd ~/genai-tutorial
@@ -382,7 +391,9 @@ Run the script to create the summaries using this command:
 run --fn=../prompts/scripts/summarizer.jinja
 ```
 
-This will churn for a few minutes, but it's only doing two chapters, so it won't take too long. (A full book might take 15-20 minutes as prompter works now, although that time could be improved by paralellizing the requests).
+This will churn for a few minutes, but it's only doing two chapters, so it won't take too long.
+
+_NOTE_: A full book might take 15-20 minutes as prompter works now, although that time could be improved by paralellizing the requests. You can use [Caffine](https://www.caffeine-app.net/) to prevent your Mac from falling asleep while this is happenening.
 
 Once it's complete, note the new markdown files in the root of the content directory. Also, note that you now what a file called `prompter.db` in your directory. This is a sqlite database that has all the blocks and content from the
 
