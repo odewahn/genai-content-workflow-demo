@@ -188,7 +188,8 @@ Let's start with a simple example -- summarizing an essay. The main things to un
 - block -- chunks of text of any size. The goal of prompter is to get all blocks in a work to be smaller than the context window for LLM models
 - group -- sets of blocks that are created during actions like loading, transforming, or squashing other blocks. You can give a group a meaningfule name by supplying a `--group_tag` in the command that is creting it. Otherwise prompter will generate a random name for you.
 - current group -- the set of blocks that are the result of the most recent operation
-- prompt -- a templated task (and persona) that are applied to a block and sent to an LLM for completion. This output can then be used to create new blocks, which enables you to chaing operations together to create more complex operations.
+- prompt -- a templated task (and persona) that are applied to a block and sent to an LLM for completion.
+  -- prompt responses -- This output returned when a prompt is sent to the LLM. These can be used to create new blocks, which enables you to chain commands together to create more complex workflows.
 
 ```
 cd ~/genai-tutorial
@@ -366,12 +367,14 @@ Great! Now we have the "recipe" for creating a summary for the content. Now we c
 init
 load --fn=cat-essay.txt
 transform --transformation=new-line-split
-prompt --task=summarize.jinja
+prompt --task=summarize.jinja --model=gpt-3.5-turbo
 squash --group_tag=summarized-chunks --order=group_id
 prompt --task=summarize.jinja
 transfer-prompts --to=blocks --group_tag=final
 dump
 ```
+
+Note that there are a few new prompter options in this script, such as they ability to change the model you use when submitting a prompt. The full list of options can be found in the prompter documentation.
 
 To run this, we can use the `run` command:
 
@@ -383,6 +386,12 @@ Finally, try adding this to the final prompt to see a different persona and run 
 
 ```
  --persona=pirate.txt
+```
+
+Rerunning the script (you should be able to just up-arrow) gives you this result:
+
+```
+Arrr, cats be excellent house pets, me hearties, for they be good companions, civilized members of the household, and easy to care for, makin' 'em a popular choice fer many a landlubber.
 ```
 
 # Using Prompter with Fetcher content
